@@ -29,7 +29,7 @@ const Task = {
 
   methods: {
     switchDelete: function () {
-      this.$emit('onRemove', this.task)
+      this.$emit('onRemoveItem', this.task)
     },
     mark: function() {
       this.$emit('onDone', this.task)
@@ -41,11 +41,16 @@ const Task = {
   },
 
   template: `
-  <div>
-    <div v-on:click="mark">
-      Task: <span> {{task.name}} </span> <span v-if="task.isDone">(Done!)</span>
+  <div class="task" v-on:click="mark">
+    <div>
+      <span> {{task.name}} </span> 
+      <span v-if="task.isDone">
+        <i class="fas fa-check"></i>
+      </span>
     </div>
-    <button v-on:click="switchDelete">delete</button>
+    <div>
+      <i class="fas fa-times deleteButton" v-on:click="switchDelete"></i>
+    </div>
   </div>
   `,
 }
@@ -60,22 +65,16 @@ Vue.component('task-list', {
     formCustom: Field
   },
   template: `<div>
-    <div v-for="task in tasks">
-        <task-list-item :task="task" @onRemove="remove($event)" @onDone="markDone($event)"></task-list-item>
+    <div v-for="task in tasks" class="taskListInner">
+        <task-list-item :task="task" @onRemoveItem="remove($event)" @onDone="markDone($event)"></task-list-item>
     </div>
   </div>`,
   methods: {
-    notify: function (task) {
-      this.tasks.push({
-        name: task,
-        isDone: false
-      });
-    },
     markDone: function(task) {
-      task.isDone = !task.isDone
+      task.isDone = !task.isDone;
     },
-    remove: function (task) {
-      this.tasks.splice(this.tasks.indexOf(task), 1);
+    remove: function(task){
+      this.$emit('onRemove', task);
     }
   }
 })
@@ -124,6 +123,9 @@ const app = new Vue({
         name: task,
         isDone: false
       });
+    },
+    remove: function (task) {
+      this.tasks.splice(this.tasks.indexOf(task), 1);
     }
   },
   components: {
@@ -131,15 +133,32 @@ const app = new Vue({
   },
   template: `
   <div>
-    <button @click="all">All tasks</button>
-    <button @click="done">Done tasks</button>
-    <button @click="notDone">In progress tasks</button>
-    <h1>Search for: {{pattern}}</h1>
-    <input v-model="pattern" type="text"></input>
-    <form-custom @onStatusChange="notify($event)"></form-custom>
-    <task-list v-if="lookFor === 'all' " :tasks="filteredList"></task-list>
-    <task-list v-else-if="lookFor === 'done' " :tasks="filteredList.filter(elem => elem.isDone)"></task-list>
-    <task-list v-else-if="lookFor === 'notDone' " :tasks="filteredList.filter(elem => !elem.isDone)"></task-list>
+    <header>
+      <h1>Search for: {{pattern}}</h1>
+      <input v-model="pattern" type="text" class="input"></input>
+    </header>
+
+    <div class="buttons">
+      <button class="button" @click="all">All</button>
+      <button class="button" @click="done">Done</button>
+      <button class="button" @click="notDone">In progress</button>
+    </div>
+
+    <div class="tasks">
+      <form-custom @onStatusChange="notify($event)" class="inputForm"></form-custom>
+      <task-list class="taskList" @onRemove="remove($event)" 
+        v-if="lookFor === 'all' " :tasks="filteredList"
+      ></task-list>
+      <task-list class="taskList" @onRemove="remove($event)" 
+        v-else-if="lookFor === 'done' " 
+        :tasks="filteredList.filter(elem => elem.isDone)"
+      ></task-list>
+      <task-list class="taskList" @onRemove="remove($event)" 
+        v-else-if="lookFor === 'notDone' " 
+        :tasks="filteredList.filter(elem => !elem.isDone)"
+      ></task-list>
+    </div>
+
   </div>
   `
 })
