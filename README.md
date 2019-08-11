@@ -1,4 +1,4 @@
-# added styles without progress bar
+# Home work done
 <br/>
 
 [LINK](https://gemofort.github.io/vueTodo/)
