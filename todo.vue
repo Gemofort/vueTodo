@@ -20,6 +20,27 @@ const Field = {
   },
 }
 
+const ProgressBar = {
+  props: {
+    length: String
+  },
+
+  name: 'progress-bar',
+  computed: {
+    progressLength() {
+      return `width: ${this.length}%`
+    }
+  },
+
+  template: `
+  <div class="progress-bar">
+    <div class="progress-bar_inner" v-if="length > 0" :style="progressLength">
+      <p>{{this.length}}%</p>
+    </div>
+  </div>
+  `,
+}
+
 const Task = {
   props: {
     task: Object
@@ -106,7 +127,10 @@ const app = new Vue({
       return this.tasks.filter(task => {
         return task.name.toLowerCase().includes(this.pattern.toLowerCase());
       });
-    }
+    },
+    lengthCompute() {
+      return Math.floor(this.tasks.filter(elem => elem.isDone).length * 100 / this.tasks.length);
+    },
   },
   methods: {
     all: function(){
@@ -129,7 +153,8 @@ const app = new Vue({
     }
   },
   components: {
-    formCustom: Field
+    formCustom: Field,
+    progressBar: ProgressBar,
   },
   template: `
   <div>
@@ -138,27 +163,32 @@ const app = new Vue({
       <input v-model="pattern" type="text" class="input"></input>
     </header>
 
-    <div class="buttons">
-      <button class="button" @click="all">All</button>
-      <button class="button" @click="done">Done</button>
-      <button class="button" @click="notDone">In progress</button>
-    </div>
+    <main>
+      <section class="left-side">
+        <div class="buttons">
+          <button class="button" @click="all">All</button>
+          <button class="button" @click="done">Done</button>
+          <button class="button" @click="notDone">In progress</button>
+        </div>
+        <progress-bar :length="lengthCompute"></progress-bar>
+      </section>
 
-    <div class="tasks">
-      <form-custom @onStatusChange="notify($event)" class="inputForm"></form-custom>
-      <task-list class="taskList" @onRemove="remove($event)" 
-        v-if="lookFor === 'all' " :tasks="filteredList"
-      ></task-list>
-      <task-list class="taskList" @onRemove="remove($event)" 
-        v-else-if="lookFor === 'done' " 
-        :tasks="filteredList.filter(elem => elem.isDone)"
-      ></task-list>
-      <task-list class="taskList" @onRemove="remove($event)" 
-        v-else-if="lookFor === 'notDone' " 
-        :tasks="filteredList.filter(elem => !elem.isDone)"
-      ></task-list>
-    </div>
+      <div class="tasks">
+        <form-custom @onStatusChange="notify($event)" class="inputForm"></form-custom>
+        <task-list class="taskList" @onRemove="remove($event)" 
+          v-if="lookFor === 'all' " :tasks="filteredList"
+        ></task-list>
+        <task-list class="taskList" @onRemove="remove($event)" 
+          v-else-if="lookFor === 'done' " 
+          :tasks="filteredList.filter(elem => elem.isDone)"
+        ></task-list>
+        <task-list class="taskList" @onRemove="remove($event)" 
+          v-else-if="lookFor === 'notDone' " 
+          :tasks="filteredList.filter(elem => !elem.isDone)"
+        ></task-list>
+      </div>
+    </main>
 
-  </div>
+  </div>    
   `
 })
